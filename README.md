@@ -4,9 +4,7 @@
 > tells you whether it's a **Hotdog 🌭** or **Not Hotdog ❌**, with a confidence score.
 
 A full-stack machine learning project built to be **readable and educational** — every
-component is documented to explain *why* each decision was made, not just *what* it does.
-
-This README grows step by step as the project is built (see the checklist below).
+component is documented.
 
 ---
 
@@ -20,10 +18,24 @@ This README grows step by step as the project is built (see the checklist below)
 
 ---
 
+## Dataset
+
+The model trains on the Kaggle **"Hot Dog - Not Hot Dog"** dataset. Images aren't committed
+to git — you download them yourself. Full instructions (Kaggle CLI + manual) are in
+[`model/data/README.md`](model/data/README.md). Quick version:
+
+```bash
+kaggle datasets download -d dansbecker/hot-dog-not-hot-dog -p model/data --unzip
+python model/prepare_data.py --source model/data/seefood   # organize into yes/no layout
+python model/prepare_data.py --verify                      # sanity-check the counts
+```
+
+---
+
 ## Build steps
 
 - [x] **1. Project structure + README skeleton**
-- [ ] **2. Data pipeline** — folder structure + Kaggle dataset download instructions
+- [x] **2. Data pipeline** — folder structure + Kaggle dataset download instructions
 - [ ] **3. Image preprocessing** — resize to 224×224, normalize, data augmentation
 - [ ] **4. CNN model architecture** — Conv2D, MaxPooling2D, Dense, binary crossentropy
 - [ ] **5. Training script** — early stopping + model checkpoint callbacks
