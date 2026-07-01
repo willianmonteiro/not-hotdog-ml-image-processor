@@ -58,7 +58,8 @@ def build_model():
     # × 128 feature maps
     # = 100,352 numbers
 
-    # fully connected layer that reasons over all features.
+    # Dense(128): fully connected layer, each of the 100,352 inputs connects to all 128 neurons
+    # learns which combinations of patterns are most useful for the final decision
     # https://keras.io/api/layers/core_layers/dense/
     model.add(layers.Dense(128, activation="relu"))
 
@@ -67,9 +68,9 @@ def build_model():
     model.add(layers.Dropout(0.5))
 
     # Single sigmoid unit -> probability the image is a hotdog (class 1)
+
     model.add(layers.Dense(1, activation="sigmoid"))
 
-    # Wires up optimizer, loss and metrics for training
     # https://keras.io/api/models/model_training_apis/#compile-method
     model.compile(
         optimizer="adam",                # adaptive gradient-descent optimizer
@@ -80,5 +81,5 @@ def build_model():
 
 
 if __name__ == "__main__":
-    # Prints the layer table with output shapes and parameter counts.
+    # prints the layer table with output shapes and parameter counts.
     build_model().summary()

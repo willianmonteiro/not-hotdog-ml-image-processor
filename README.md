@@ -53,6 +53,18 @@ for image tasks. The key concepts:
 224×224×3 → [Conv 32 → Pool] → [Conv 64 → Pool] → [Conv 128 → Pool] → Flatten → Dense 128 → Dropout → Sigmoid
 ```
 
+### Training
+
+`python model/train.py` fits the model and uses two callbacks:
+
+- **EarlyStopping** — stops training once validation loss stops improving (patience 5) and
+  restores the best weights, so we don't waste epochs or keep an overfit final model.
+- **ModelCheckpoint** — saves the model every time validation loss hits a new best, so the
+  best result survives a crash or later overfitting.
+
+The best model is written to `model/checkpoints/best_model.h5` and per-epoch metrics to
+`history.json` (used for the learning curves in evaluation).
+
 ---
 
 ## Build steps
@@ -61,7 +73,7 @@ for image tasks. The key concepts:
 - [x] **2. Data pipeline** — folder structure + Kaggle dataset download instructions
 - [x] **3. Image preprocessing** — resize to 224×224, normalize, data augmentation
 - [x] **4. CNN model architecture** — Conv2D, MaxPooling2D, Dense, binary crossentropy
-- [ ] **5. Training script** — early stopping + model checkpoint callbacks
+- [x] **5. Training script** — early stopping + model checkpoint callbacks
 - [ ] **6. Evaluation** — accuracy, loss curves, confusion matrix
 - [ ] **7. Save model** for deployment (`.h5`)
 - [ ] **8. FastAPI backend** — `POST /classify` endpoint
