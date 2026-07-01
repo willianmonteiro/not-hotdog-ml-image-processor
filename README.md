@@ -107,8 +107,30 @@ defaults to `http://localhost:8000`; override it with `VITE_API_URL` (see `.env.
 The classifier uses **transfer learning**: a **MobileNetV2** base pretrained on ImageNet
 (1.4M images) is frozen and used as a feature extractor, with a small trainable head on top.
 
+**Classifying an image (inference):**
+
+```mermaid
+flowchart LR
+    IMG["🖼️ Uploaded image"] --> PRE["Preprocess<br/>resize 224×224<br/>scale to [-1, 1]"]
+    PRE --> BASE["MobileNetV2 base<br/>frozen · extracts features"]
+    BASE --> GAP["GlobalAveragePooling2D<br/>→ 1280-value vector"]
+    GAP --> DROP["Dropout 0.3"]
+    DROP --> SIG["Dense(1, sigmoid)<br/>→ probability p"]
+    SIG --> DEC{"p ≥ 0.5 ?"}
+    DEC -->|yes| HOT["🌭 Hotdog<br/>confidence = p"]
+    DEC -->|no| NOT["❌ Not Hotdog<br/>confidence = 1 − p"]
 ```
-224×224×3 → MobileNetV2 (frozen, pretrained) → GlobalAveragePooling → Dropout → Sigmoid
+
+**Building the model (offline training):**
+
+```mermaid
+flowchart LR
+    DATA[("Kaggle dataset<br/>yes / no")] --> PREP["Preprocess + augment<br/>rotate · flip · zoom"]
+    PREP --> ARCH["MobileNetV2 frozen<br/>+ trainable head"]
+    ARCH --> FIT["train.py · model.fit<br/>EarlyStopping + Checkpoint"]
+    FIT --> BEST[("best_model.h5")]
+    BEST --> EXPORT["export.py<br/>drop optimizer"]
+    EXPORT --> DEPLOY[("hotdog_classifier.h5<br/>loaded by the API")]
 ```
 
 - **MobileNetV2 (frozen base)** — already knows how to see edges, textures and shapes from
