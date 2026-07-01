@@ -18,16 +18,62 @@ component is documented.
 
 ---
 
-## Dataset
+## Getting started
 
-The model trains on the Kaggle **"Hot Dog - Not Hot Dog"** dataset. Images aren't committed
-to git — you download them yourself. Full instructions (Kaggle CLI + manual) are in
-[`model/data/README.md`](model/data/README.md). Quick version:
+**Prerequisites:** Python 3.9–3.12 and a free [Kaggle](https://www.kaggle.com) account (for the dataset).
+
+### 1. Set up the environment
 
 ```bash
-kaggle datasets download -d dansbecker/hot-dog-not-hot-dog -p model/data --unzip
-python model/prepare_data.py --source model/data/seefood   # organize into yes/no layout
-python model/prepare_data.py --verify                      # sanity-check the counts
+python3 -m venv .venv
+source .venv/bin/activate                      # Windows: .venv\Scripts\activate
+pip install -r model/requirements.txt          # training/eval deps (TensorFlow, etc.)
+
+# On Python 3.12, TensorFlow ships Keras 3 (no ImageDataGenerator). Force the Keras 2 API:
+pip install tf-keras
+export TF_USE_LEGACY_KERAS=1                    # keep this set for all model commands below
+```
+
+### 2. Get the dataset
+
+Images aren't committed to git — you download them from Kaggle. Full instructions (CLI +
+manual) are in [`model/data/README.md`](model/data/README.md). Quick version:
+
+```bash
+pip install kaggle                             # then add your token at ~/.kaggle/kaggle.json
+
+# Download into an isolated raw/ folder so it never collides with train/ and validation/.
+kaggle datasets download -d dansbecker/hot-dog-not-hot-dog -p model/data/raw --unzip
+python model/prepare_data.py --source model/data/raw/seefood --clean   # organize + remove raw
+python model/prepare_data.py --verify                                  # sanity-check the counts
+```
+
+### 3. Train, evaluate and export the model
+
+```bash
+python model/train.py       # trains the CNN -> model/checkpoints/best_model.h5
+python model/evaluate.py    # accuracy + learning curves + confusion matrix (optional)
+python model/export.py      # -> model/hotdog_classifier.h5 (the artifact the API loads)
+```
+
+Quick sanity check without the API:
+
+```bash
+python model/predict.py path/to/image.jpg      # => Hotdog 🌭  (98.2% confident)
+```
+
+### 4. Run the API
+
+```bash
+pip install -r api/requirements.txt
+uvicorn main:app --reload --app-dir api
+```
+
+Open <http://localhost:8000/docs> for interactive docs, or call it directly:
+
+```bash
+curl -F "file=@path/to/image.jpg" http://localhost:8000/classify
+# {"label": "Hotdog 🌭", "is_hotdog": true, "confidence": 0.98}
 ```
 
 ---
@@ -65,22 +111,37 @@ for image tasks. The key concepts:
 The best model is written to `model/checkpoints/best_model.h5` and per-epoch metrics to
 `history.json` (used for the learning curves in evaluation).
 
+### Evaluation
+
+`python model/evaluate.py` loads the best checkpoint and reports how well it generalizes:
+
+- **Accuracy / loss** on the validation set (images the model never trained on).
+- **Learning curves** — train vs. validation loss/accuracy over epochs. A widening gap
+  between the two lines signals overfitting.
+- **Confusion matrix** — breaks results into correct predictions vs. the two mistake types:
+  false positives (called hotdog, wasn't) and false negatives (missed a real hotdog).
+
+Plots are saved to `model/checkpoints/` (`learning_curves.png`, `confusion_matrix.png`).
+
 ---
 
-## Build steps
+## Roadmap
 
-- [x] **1. Project structure + README skeleton**
-- [x] **2. Data pipeline** — folder structure + Kaggle dataset download instructions
-- [x] **3. Image preprocessing** — resize to 224×224, normalize, data augmentation
-- [x] **4. CNN model architecture** — Conv2D, MaxPooling2D, Dense, binary crossentropy
-- [x] **5. Training script** — early stopping + model checkpoint callbacks
-- [ ] **6. Evaluation** — accuracy, loss curves, confusion matrix
-- [ ] **7. Save model** for deployment (`.h5`)
-- [ ] **8. FastAPI backend** — `POST /classify` endpoint
-- [ ] **9. Rate limiting** with slowapi — 10 requests/min/IP
-- [ ] **10. React frontend** — drag-and-drop upload + confidence display
-- [ ] **11. Docker + docker-compose** — containerize everything
-- [ ] **12. Final README** — full documentation, architecture diagram, design decisions
+**Model pipeline** — `model/` &nbsp;✅
+- Data prep from the Kaggle dataset (`prepare_data.py`)
+- Preprocessing: resize, normalize, augmentation (`preprocessing.py`)
+- CNN architecture (`model.py`) + training with callbacks (`train.py`)
+- Evaluation and export to a deploy-ready `.h5` (`evaluate.py`, `export.py`, `predict.py`)
+
+**API** — `api/` &nbsp;🚧
+- ✅ FastAPI service with `POST /classify` returning label + confidence
+- ⬜ Rate limiting with slowapi (10 requests/min/IP)
+
+**Frontend** — `frontend/` &nbsp;⬜
+- Drag-and-drop image upload, live result with confidence
+
+**Infrastructure** &nbsp;⬜
+- Docker + docker-compose to run API and frontend together
 
 ---
 

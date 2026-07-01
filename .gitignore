@@ -23,6 +23,9 @@ model/data/train/no/*
 model/data/validation/yes/*
 model/data/validation/no/*
 !**/.gitkeep
+# Raw Kaggle download (deleted by prepare_data.py --clean, ignored in case it lingers).
+model/data/raw/
+*.zip
 
 # --- Node / React ---
 node_modules/

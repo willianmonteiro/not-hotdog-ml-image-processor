@@ -43,7 +43,7 @@ def train():
         # can never lose our best result
         # https://keras.io/api/callbacks/model_checkpoint/
         ModelCheckpoint(
-            filepath=BEST_MODEL_PATH,
+            filepath=str(BEST_MODEL_PATH),  # tf-keras expects a str path, not a Path
             monitor="val_loss",
             save_best_only=True,
         ),
