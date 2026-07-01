@@ -7,10 +7,11 @@ and yields batches on the fly.
 
 from pathlib import Path
 
+from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
-# 224x224 matches the input size of common CNNs (VGG/ResNet/MobileNet), which keeps
-# transfer learning on the table later.
+# 224x224 is MobileNetV2's native input size. We use its own preprocess_input (scales
+# pixels to [-1, 1]) instead of a plain /255 so inputs match what the pretrained base expects.
 IMG_SIZE = (224, 224)
 BATCH_SIZE = 32
 CLASS_MODE = "binary"
@@ -28,7 +29,7 @@ def build_train_generator(data_dir: Path = TRAIN_DIR):
     looks like rather than memorize the training photos.
     """
     datagen = ImageDataGenerator(
-        rescale=1.0 / 255,
+        preprocessing_function=preprocess_input,
         rotation_range=20,
         width_shift_range=0.2,
         height_shift_range=0.2,
@@ -50,9 +51,9 @@ def build_validation_generator(data_dir: Path = VALIDATION_DIR):
     """Validation pipeline: normalization only.
 
     No augmentation, should measure performance on real, untouched images.
-    Rescaling stays because the model expects 0–1 inputs.
+    Same preprocess_input as training so the model sees consistent inputs.
     """
-    datagen = ImageDataGenerator(rescale=1.0 / 255)
+    datagen = ImageDataGenerator(preprocessing_function=preprocess_input)
     return datagen.flow_from_directory(
         data_dir,
         target_size=IMG_SIZE,

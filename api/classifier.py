@@ -11,6 +11,7 @@ from pathlib import Path
 
 import numpy as np
 from PIL import Image
+from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
 from tensorflow.keras.models import load_model
 
 IMG_SIZE = (224, 224)  # must match training
@@ -25,9 +26,9 @@ _model = load_model(str(MODEL_PATH))
 
 
 def _preprocess(image_bytes: bytes) -> np.ndarray:
-    # same pipeline as training: RGB, resize, scale to 0-1, add batch dimension.
+    # same pipeline as training: RGB, resize, MobileNetV2 preprocess ([-1,1]), add batch dim.
     image = Image.open(io.BytesIO(image_bytes)).convert("RGB").resize(IMG_SIZE)
-    array = np.asarray(image, dtype="float32") / 255.0
+    array = preprocess_input(np.asarray(image, dtype="float32"))
     return np.expand_dims(array, axis=0)
 
 

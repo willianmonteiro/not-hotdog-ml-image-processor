@@ -80,24 +80,41 @@ curl -F "file=@path/to/image.jpg" http://localhost:8000/classify
 
 ## How the model works
 
-The classifier is a small **Convolutional Neural Network (CNN)** — the standard architecture
-for image tasks. The key concepts:
+The classifier uses **transfer learning**: a **MobileNetV2** base pretrained on ImageNet
+(1.4M images) is frozen and used as a feature extractor, with a small trainable head on top.
 
-- **Conv2D** — slides small filters across the image to detect visual patterns. Early layers
-  pick up edges and colors; deeper layers combine those into textures and shapes. Filters
-  double each block (32 → 64 → 128) as the network learns richer features.
-- **MaxPooling2D** — downsamples by keeping the strongest value in each 2×2 region. It shrinks
-  the data (less compute) and makes detection robust to small shifts in position.
-- **Flatten → Dense** — turns the final feature maps into a flat vector and feeds a fully
-  connected layer that reasons over the combined features.
-- **Dropout (0.5)** — randomly disables half the neurons during training so the model can't
-  lean on any single one; a simple, effective guard against overfitting.
+```
+224×224×3 → MobileNetV2 (frozen, pretrained) → GlobalAveragePooling → Dropout → Sigmoid
+```
+
+- **MobileNetV2 (frozen base)** — already knows how to see edges, textures and shapes from
+  millions of images. We keep those weights fixed and reuse them.
+- **GlobalAveragePooling2D** — collapses each feature map to a single number, giving a compact
+  1280-length vector (far fewer parameters than flattening, so less overfitting).
+- **Dropout (0.3)** — randomly disables neurons during training to reduce overfitting.
 - **Sigmoid output** — one neuron producing a probability from 0 to 1 (the hotdog confidence).
 - **Binary crossentropy** — the loss function that matches a single-probability, two-class setup.
 
+Because MobileNetV2 expects its own input scaling, preprocessing uses `preprocess_input`
+(pixels mapped to `[-1, 1]`) instead of a plain `/255` — applied identically at train and
+inference time.
+
+### Why transfer learning? (a real design decision)
+
+The first version was a **CNN trained from scratch** (stacked Conv2D + MaxPooling blocks). On
+this dataset it failed — after training and running evaluation it sat at exactly **50%
+accuracy** (`loss ≈ 0.69`, i.e. random guessing), predicting "hotdog" for almost everything:
+
 ```
-224×224×3 → [Conv 32 → Pool] → [Conv 64 → Pool] → [Conv 128 → Pool] → Flatten → Dense 128 → Dropout → Sigmoid
+Validation accuracy: 0.5000
+              precision  recall  f1-score
+  not hotdog     0.50     0.04     0.08
+      hotdog     0.50     0.96     0.66
 ```
+
+The reason is data size: ~500 images is far too few to teach a network millions of weights
+from zero. Transfer learning sidesteps this by reusing features already learned from millions
+of images, so only a tiny head needs training — which is exactly what small datasets need.
 
 ### Training
 
