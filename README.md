@@ -3,8 +3,16 @@
 > Inspired by the "SeeFood" app from HBO's *Silicon Valley*. Upload an image and the app
 > tells you whether it's a **Hotdog 🌭** or **Not Hotdog ❌**, with a confidence score.
 
+[![Watch the Silicon Valley "Not Hotdog" scene](https://img.youtube.com/vi/tWwCK95X6go/hqdefault.jpg)](https://www.youtube.com/watch?v=tWwCK95X6go)
+
 Full-stack ML image classifier using a CNN (TensorFlow/Keras), FastAPI, and React. Covers the
 full lifecycle: data pipeline, image preprocessing, model training, evaluation, and deployment.
+
+## Demo
+
+<p align="center">
+  <img src="docs/screenshot.png" width="360" alt="Not Hotdog app classifying a hotdog image with 100% confidence" />
+</p>
 
 ---
 
