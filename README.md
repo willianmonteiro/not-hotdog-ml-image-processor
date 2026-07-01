@@ -1,9 +1,14 @@
+
+
 # 🌭 Not Hotdog — ML Image Classifier
 
 > Inspired by the "SeeFood" app from HBO's *Silicon Valley*. Upload an image and the app
 > tells you whether it's a **Hotdog 🌭** or **Not Hotdog ❌**, with a confidence score.
 
-[![Watch the Silicon Valley "Not Hotdog" scene](https://img.youtube.com/vi/tWwCK95X6go/hqdefault.jpg)](https://www.youtube.com/watch?v=tWwCK95X6go)
+
+https://github.com/user-attachments/assets/0f500f3e-1a01-43d6-ae4c-50844f66b7da
+
+
 
 Full-stack ML image classifier using a CNN (TensorFlow/Keras), FastAPI, and React. Covers the
 full lifecycle: data pipeline, image preprocessing, model training, evaluation, and deployment.
